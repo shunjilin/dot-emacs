@@ -1,17 +1,3 @@
-;; get bash_profile env variables
-(setq shell-file-name "bash")
-(setq shell-command-switch "-ic")
-
-;; mac modifiers
-(setq mac-command-modifier 'meta)
-(setq mac-option-modifier nil)
-
-;; turn off beeping
-(setq ring-bell-function 'ignore)
-
-;; set default font
-(set-default-font "Menlo-16")
-
 ;; For melpa
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
@@ -22,16 +8,6 @@
 ;; You may delete these explanatory comments.
 (package-initialize)
 
-;; Full screen on startup
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
-
-;; Disable menu
-(tool-bar-mode -1)
-
-;; Disable splash screen and startup message
-(setq inhibit-startup-message t) 
-(setq initial-scratch-message nil)
-
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -41,6 +17,8 @@
    [default default default italic underline success warning error])
  '(ansi-color-names-vector
    ["#212526" "#ff4b4b" "#b4fa70" "#fce94f" "#729fcf" "#e090d7" "#8cc4ff" "#eeeeec"])
+ '(company-quickhelp-color-background "#4F4F4F")
+ '(company-quickhelp-color-foreground "#DCDCCC")
  '(compilation-message-face (quote default))
  '(cua-global-mark-cursor-color "#2aa198")
  '(cua-normal-cursor-color "#839496")
@@ -81,7 +59,8 @@
     ("#dc322f" "#cb4b16" "#b58900" "#546E00" "#B4C342" "#00629D" "#2aa198" "#d33682" "#6c71c4")))
  '(package-selected-packages
    (quote
-    (company-irony-c-headers company-irony irony auto-complete-clang flycheck rtags cmake-ide zenburn-theme color-theme-solarized iedit wgrep py-autopep8 jedi elpy company-anaconda)))
+    (irony-eldoc company-irony-c-headers company-irony irony auto-complete-clang flycheck rtags cmake-ide zenburn-theme color-theme-solarized iedit wgrep py-autopep8 jedi elpy company-anaconda)))
+ '(pdf-view-midnight-colors (quote ("#DCDCCC" . "#383838")))
  '(pos-tip-background-color "#073642")
  '(pos-tip-foreground-color "#93a1a1")
  '(smartrep-mode-line-active-bg (solarized-color-blend "#859900" "#073642" 0.2))
@@ -127,6 +106,31 @@
  ;; If there is more than one, they won't work right.
  )
 
+;; mac modifiers for my keyboard
+(setq mac-command-modifier 'meta)
+(setq mac-option-modifier nil)
+
+;; get bash_profile env variables
+(setq shell-file-name "bash")
+(setq shell-command-switch "-ic")
+
+;; turn off beeping
+(setq ring-bell-function 'ignore)
+
+;; set default font
+(set-default-font "Menlo-16")
+
+;; Full screen on startup
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+
+;; Disable menu
+(tool-bar-mode -1)
+
+;; Disable splash screen and startup message
+(setq inhibit-startup-message t) 
+(setq initial-scratch-message nil)
+
+
 ;; flycheck
 (add-hook 'after-init-hook #'global-flycheck-mode)
 
@@ -138,7 +142,23 @@
 
 ;; C++
 ;; reference:
-;;http://syamajala.github.io/c-ide.html
+;; http://syamajala.github.io/c-ide.html
+;; https://www.emacswiki.org/emacs/CPlusPlusMode
+
+; style I want to use in c++ mode
+(c-add-style "my-style" 
+	     '("stroustrup"
+	       (indent-tabs-mode . nil)        ; use spaces rather than tabs
+	       (c-basic-offset . 4)            ; indent by four spaces
+	       (c-offsets-alist . ((inline-open . 0)  ; custom indentation rules
+				   (brace-list-open . 0)
+				   (statement-case-open . +)))))
+
+(defun my-c++-mode-hook ()
+  (c-set-style "my-style")        ; use my-style defined above
+  (auto-fill-mode))
+
+(add-hook 'c++-mode-hook 'my-c++-mode-hook)
 
 ;;rtags
 (require 'rtags)
@@ -181,7 +201,7 @@
 ;; integrate rtags with flycheck
 (require 'flycheck-rtags)
 
-(defun my-flycheck-rtags-setup ()
+(defun my-flycheck-rtags-setup()
   (flycheck-select-checker 'rtags)
   (setq-local flycheck-highlighting-mode nil) ;; RTags creates more accurate overlays.
   (setq-local flycheck-check-syntax-automatically nil))
@@ -191,6 +211,12 @@
 ;; integrating irony with flycheck
 (eval-after-load 'flycheck
   '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
+
+;; irony-eldoc for displaying function arguments
+(add-hook 'irony-mode-hook #'irony-eldoc)
+
+;; electric-pair-mode for closing parenthesis, braces, double quotes
+(electric-pair-mode 1)
 
 ;; cmake
 (cmake-ide-setup)
