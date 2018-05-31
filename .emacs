@@ -108,7 +108,7 @@
 
 ;; mac modifiers for my keyboard
 (setq mac-command-modifier 'meta)
-(setq mac-option-modifier nil)
+(setq mac-meta-modifier nil)
 
 ;; get bash_profile env variables
 (setq shell-file-name "bash")
@@ -130,9 +130,11 @@
 (setq inhibit-startup-message t) 
 (setq initial-scratch-message nil)
 
+;; display fill column line
+(require 'fill-column-indicator)
 
 ;; flycheck
-(add-hook 'after-init-hook #'global-flycheck-mode)
+;;(add-hook 'after-init-hook #'global-flycheck-mode)
 
 ;; elpy
 (elpy-enable)
@@ -156,9 +158,15 @@
 
 (defun my-c++-mode-hook ()
   (c-set-style "my-style")        ; use my-style defined above
-  (auto-fill-mode))
+  (auto-fill-mode)
+  ;; electric-pair-mode for closing parenthesis, braces, double quotes
+  (electric-pair-mode 1)
+  (setq fill-column 80)
+  (setq fci-rule-color "red")
+  (fci-mode))
 
-(add-hook 'c++-mode-hook 'my-c++-mode-hook)
+;; c-mode-common-hook is also called by c++-mode
+(add-hook 'c-mode-common-hook 'my-c++-mode-hook)
 
 ;;rtags
 (require 'rtags)
@@ -171,30 +179,8 @@
 (setq rtags-autostart-diagnostics t)
 (rtags-enable-standard-keybindings)
 
-;; irony
-(add-hook 'c++-mode-hook 'irony-mode)
-(add-hook 'c-mode-hook 'irony-mode)
-(add-hook 'objc-mode-hook 'irony-mode)
-
-(defun my-irony-mode-hook ()
-  (define-key irony-mode-map [remap completion-at-point]
-    'irony-completion-at-point-async)
-  (define-key irony-mode-map [remap complete-symbol]
-    'irony-completion-at-point-async))
-
-(add-hook 'irony-mode-hook 'my-irony-mode-hook)
-(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
-
-;; company-irony
-(add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
-(setq company-backends (delete 'company-semantic company-backends))
-(require 'company-irony-c-headers)
-(eval-after-load 'company
-  '(add-to-list
-      'company-backends '(company-irony-c-headers company-irony)))
-
 ;; tab completion with no delay
-(setq company-idle-delay 0)
+;;(setq company-idle-delay 0)
 (define-key c-mode-map [(tab)] 'company-complete)
 (define-key c++-mode-map [(tab)] 'company-complete)
 
@@ -205,18 +191,11 @@
   (flycheck-select-checker 'rtags)
   (setq-local flycheck-highlighting-mode nil) ;; RTags creates more accurate overlays.
   (setq-local flycheck-check-syntax-automatically nil))
+
 ;; c-mode-common-hook is also called by c++-mode
-(add-hook 'c-mode-common-hook #'my-flycheck-rtags-setup)
+(add-hook 'c-mode-common-hook 'my-flycheck-rtags-setup)
 
-;; integrating irony with flycheck
-(eval-after-load 'flycheck
-  '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
 
-;; irony-eldoc for displaying function arguments
-(add-hook 'irony-mode-hook #'irony-eldoc)
-
-;; electric-pair-mode for closing parenthesis, braces, double quotes
-(electric-pair-mode 1)
 
 ;; cmake
 (cmake-ide-setup)
